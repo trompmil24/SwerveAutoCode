@@ -22,6 +22,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -121,10 +123,10 @@ private final com.ctre.phoenix.sensors.Pigeon2 m_pigeon2 = new com.ctre.phoenix.
 
     
 
-     Mk4SwerveModuleHelper.createFalcon500(Mk4SwerveModuleHelper.GearRatio.L2, 1, 2, 1, Constants.FRONT_RIGHT_MODULE_STEER_OFFSET);
-     Mk4SwerveModuleHelper.createFalcon500(Mk4SwerveModuleHelper.GearRatio.L2, 3, 4, 2, Constants.BACK_RIGHT_MODULE_STEER_OFFSET);
-     Mk4SwerveModuleHelper.createFalcon500(Mk4SwerveModuleHelper.GearRatio.L2, 5, 6, 3, Constants.BACK_LEFT_MODULE_STEER_OFFSET);
-     Mk4SwerveModuleHelper.createFalcon500(Mk4SwerveModuleHelper.GearRatio.L2, 7, 8, 4, Constants.FRONT_LEFT_MODULE_STEER_OFFSET);
+     //Mk4SwerveModuleHelper.createFalcon500(Mk4SwerveModuleHelper.GearRatio.L2, 1, 2, 1, Constants.FRONT_RIGHT_MODULE_STEER_OFFSET);
+     //Mk4SwerveModuleHelper.createFalcon500(Mk4SwerveModuleHelper.GearRatio.L2, 3, 4, 2, Constants.BACK_RIGHT_MODULE_STEER_OFFSET);
+     //Mk4SwerveModuleHelper.createFalcon500(Mk4SwerveModuleHelper.GearRatio.L2, 5, 6, 3, Constants.BACK_LEFT_MODULE_STEER_OFFSET);
+     //Mk4SwerveModuleHelper.createFalcon500(Mk4SwerveModuleHelper.GearRatio.L2, 7, 8, 4, Constants.FRONT_LEFT_MODULE_STEER_OFFSET);
 
 
     //   Your module has two Falcon 500s on it. One for steering and one for driving.
@@ -143,6 +145,9 @@ private final com.ctre.phoenix.sensors.Pigeon2 m_pigeon2 = new com.ctre.phoenix.
     // By default we will use Falcon 500s in standard configuration. But if you use a different configuration or motors
     // you MUST change it. If you do not, your code will crash on startup.
     // FIXME Setup motor configuration
+
+        
+
     m_frontLeftModule = Mk4SwerveModuleHelper.createFalcon500(
             // This parameter is optional, but will allow you to see the current state of the module on the dashboard.
             tab.getLayout("Front Left Module", BuiltInLayouts.kList)
@@ -194,6 +199,14 @@ private final com.ctre.phoenix.sensors.Pigeon2 m_pigeon2 = new com.ctre.phoenix.
             BACK_RIGHT_MODULE_STEER_OFFSET
     );
   }
+
+  SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(m_kinematics, getGyroscopeRotation(),
+        new SwerveModulePosition[]{    
+         //       m_frontLeftModule.getPosition(),
+           //     m_frontRightModule.getPosition(),
+             //   m_backLeftModule.getPosition(),
+               // m_backRightModule.getPosition()
+        });
 
   /**
    * Sets the gyroscope angle to zero. This can be used to set the direction the robot is currently facing to the
@@ -263,4 +276,31 @@ public SwerveDriveKinematics getKinematics()
 {
         return m_kinematics;
 }
+public ChassisSpeeds getCurrentSpeed()
+{
+
+        SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(m_chassisSpeeds);
+    //SwerveDriveKinematics.normalizeWheelSpeeds(states, MAX_VELOCITY_METERS_PER_SECOND);
+    m_frontLeftModule.set(states[0].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[0].angle.getRadians());
+    m_frontRightModule.set(states[1].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[1].angle.getRadians());
+    m_backLeftModule.set(states[2].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[2].angle.getRadians());
+    m_backRightModule.set(states[3].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[3].angle.getRadians());
+
+        ChassisSpeeds speed;
+        speed = m_kinematics.toChassisSpeeds(states);
+        return speed;
+}
+
+/*public Pose2d getPose()
+{
+Pose2d currentPose;
+return currentPose;
+
+}*/
+
+public void resetPose()
+{
+
+}
+
 }

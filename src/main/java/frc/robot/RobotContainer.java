@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.function.Consumer;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import com.pathplanner.lib.PathConstraints;
@@ -91,7 +92,7 @@ public class RobotContainer {
     @Override
     public void accept(ChassisSpeeds arg0) {
             // TODO Auto-generated method stub
-            
+      m_drivetrainSubsystem.getCurrentSpeed();
     }
 };
 Consumer<SwerveModuleState[]> state = new Consumer<SwerveModuleState[]>() {
@@ -99,7 +100,12 @@ Consumer<SwerveModuleState[]> state = new Consumer<SwerveModuleState[]>() {
   @Override
   public void accept(SwerveModuleState[] arg0) {
           // TODO Auto-generated method stub
-          
+    /*DoubleSupplier transXDoubleSupplier = () -> 0.0;
+    DoubleSupplier transYDoubleSupplier = () -> 0.0;
+    DoubleSupplier rotationSupplier = () -> 0.0;
+    new DefaultDriveCommand(m_drivetrainSubsystem, transXDoubleSupplier, transYDoubleSupplier, rotationSupplier);*/
+    m_drivetrainSubsystem.drive(new ChassisSpeeds(4, 4, 2));
+  
   }
   
 };
@@ -108,14 +114,14 @@ Consumer<Pose2d> poseConsumer = new Consumer<Pose2d>() {
   @Override
   public void accept(Pose2d arg0) {
           // TODO Auto-generated method stub
-          
+  
   }
   
 };
 Supplier<Pose2d> position = () -> new Pose2d();
 SwerveDriveKinematics m_kinematics = m_drivetrainSubsystem.getKinematics();
 
-  PathPlannerTrajectory practicePath = PathPlanner.loadPath("practice", new PathConstraints(10, 2));
+  PathPlannerTrajectory practicePath = PathPlanner.loadPath("practice", new PathConstraints(5, 2));
 
   HashMap<String, Command> eventMap = new HashMap<>();
   //eventMap.put("marker1", new PrintCommand("Passed marker 1"));
