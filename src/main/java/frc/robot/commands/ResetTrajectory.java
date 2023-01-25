@@ -4,17 +4,38 @@
 
 package frc.robot.commands;
 
+import com.pathplanner.lib.PathPlanner;
+import com.pathplanner.lib.PathPlannerTrajectory;
+
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import frc.robot.subsystems.DrivetrainSubsystem;
+
+
+
 
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
 // information, see:
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
 public class ResetTrajectory extends InstantCommand {
-  public ResetTrajectory() {
+
+  DrivetrainSubsystem m_subsystem;
+  PathPlannerTrajectory trajectory;
+
+  public ResetTrajectory(DrivetrainSubsystem m_subsystem, PathPlannerTrajectory trajectory) {
+    this.m_subsystem = m_subsystem;
+    this.trajectory = trajectory;
+
+
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    trajectory = PathPlanner.loadPath("practice", 1, 0.75);
+
+    m_subsystem.resetOdometry(new Pose2d(trajectory.getInitialPose().getX(), trajectory.getInitialPose().getY(), m_subsystem.getGyroscopeRotation()));
+
+  }
 }

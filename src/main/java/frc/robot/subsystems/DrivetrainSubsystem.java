@@ -125,17 +125,19 @@ private final com.ctre.phoenix.sensors.Pigeon2 m_pigeon2 = new com.ctre.phoenix.
 
   private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
 
-  WPI_TalonFX driveMotor1;
-  WPI_TalonFX driveMotor2;
-  WPI_TalonFX driveMotor3;
-  WPI_TalonFX driveMotor4;
+  WPI_TalonFX driveMotor1 = new WPI_TalonFX(FRONT_RIGHT_MODULE_DRIVE_MOTOR);
+  WPI_TalonFX driveMotor2 = new WPI_TalonFX(BACK_RIGHT_MODULE_DRIVE_MOTOR);
+  WPI_TalonFX driveMotor3 = new WPI_TalonFX(BACK_LEFT_MODULE_DRIVE_MOTOR);
+  WPI_TalonFX driveMotor4 = new WPI_TalonFX(FRONT_LEFT_MODULE_DRIVE_MOTOR);
+
+  
 
   Pose2d robotPose = new Pose2d();
 
   public DrivetrainSubsystem() {
     ShuffleboardTab tab = Shuffleboard.getTab("Drivetrain");
 
-        driveMotor1 = new WPI_TalonFX(FRONT_RIGHT_MODULE_DRIVE_MOTOR);
+       /*  driveMotor1 = new WPI_TalonFX(FRONT_RIGHT_MODULE_DRIVE_MOTOR);
         driveMotor2 = new WPI_TalonFX(BACK_RIGHT_MODULE_DRIVE_MOTOR);
         driveMotor3 = new WPI_TalonFX(BACK_LEFT_MODULE_DRIVE_MOTOR);
         driveMotor4 = new WPI_TalonFX(FRONT_LEFT_MODULE_DRIVE_MOTOR);
@@ -148,7 +150,7 @@ private final com.ctre.phoenix.sensors.Pigeon2 m_pigeon2 = new com.ctre.phoenix.
         driveMotor1.setSelectedSensorPosition(0);
         driveMotor2.setSelectedSensorPosition(0);
         driveMotor3.setSelectedSensorPosition(0);
-        driveMotor4.setSelectedSensorPosition(0);
+        driveMotor4.setSelectedSensorPosition(0);*/
 
     //   Your module has two Falcon 500s on it. One for steering and one for driving.
     //
@@ -317,18 +319,29 @@ public ChassisSpeeds getCurrentSpeed()
         return speed;
 }
 
+SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(m_kinematics, getGyroscopeRotation(), 
+  new SwerveModulePosition[]{frontLeftPos(), frontRightPos(), backLeftPos(), backRightPos()});
+
 public Pose2d getPose()
 {
-Translation2d roboPos = new Translation2d(backLeftPos.getX()+0.2286, backLeftPos.getY()+0.2286);
-Pose2d currentPose = new Pose2d(roboPos, getGyroscopeRotation());
-return currentPose;
-
+        return m_odometry.getPoseMeters();
 }
 
-public void resetPose()
+public void resetOdometry()
 {
-        zeroGyroscope();
-        robotPose = new Pose2d();
+        RobotContainer.getOdometry().resetPosition(getGyroscopeRotation(), 
+        new SwerveModulePosition[]
+        {frontLeftPos(), frontRightPos(), backLeftPos(), frontRightPos()}, 
+        getPose()
+        );
+}
+
+public void resetOdometry(Pose2d resetPos) {
+        RobotContainer.getOdometry().resetPosition(getGyro(), 
+        new SwerveModulePosition[]
+        {frontLeftPos(), frontRightPos(), backLeftPos(), backRightPos()}, 
+        resetPos
+        );
 }
 
 public SwerveModulePosition frontLeftPos()

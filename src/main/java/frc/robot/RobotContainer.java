@@ -67,7 +67,7 @@ public class RobotContainer {
             () -> -modifyAxis(m_controller.getRightX()) * DrivetrainSubsystem.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND
     ));
 
-    m_drivetrainSubsystem.resetPose();
+    m_drivetrainSubsystem.resetOdometry();
     // Configure the button bindings
     configureButtonBindings();
   }
@@ -128,36 +128,35 @@ Consumer<Pose2d> poseConsumer = new Consumer<Pose2d>() {
   @Override
   public void accept(Pose2d arg0) {
           // TODO Auto-generated method stub
-      m_drivetrainSubsystem.getPose();
+      m_drivetrainSubsystem.resetOdometry();
+      //m_drivetrainSubsystem.getPose();
   }
   
 };
-Supplier<Pose2d> position = () -> new Pose2d();
+Supplier<Pose2d> position = () -> new Pose2d(m_drivetrainSubsystem.getPose().getX(), m_drivetrainSubsystem.getPose().getY(), m_drivetrainSubsystem.getGyroscopeRotation());
 SwerveDriveKinematics m_kinematics = m_drivetrainSubsystem.getKinematics();
 
-  PathPlannerTrajectory practicePath = PathPlanner.loadPath("practice", new PathConstraints(1, 0.75));
+PathPlannerTrajectory practicePath = PathPlanner.loadPath("practice", new PathConstraints(1, 0.75));
 
-  HashMap<String, Command> eventMap = new HashMap<>();
+HashMap<String, Command> eventMap = new HashMap<>();
   //eventMap.put("marker1", new PrintCommand("Passed marker 1"));
   //eventMap.put("intakeDown", new IntakeDown());
   //ArrayList<PathPlannerTrajectory> pathGroup = new ArrayList<PathPlannerTrajectory>(PathPlanner.loadPathGroup("practice", new PathConstraints(3, 2)));
   
   // Create the AutoBuilder. This only needs to be created once when robot code starts, not every time you want to create an auto command. A good place to put this is in RobotContainer along with your subsystems.
-  SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
+   SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
       position, // Pose2d supplier
       poseConsumer, // Pose2d consumer, used to reset odometry at the beginning of auto
       m_kinematics, // SwerveDriveKinematics BY MASON MCMANUS 
-      new PIDConstants(.9, 0, 0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
-      new PIDConstants(1.8, 0.1, 0), // PID constants to correct for rotation error (used to create the rotation controller)
+      new PIDConstants(0.8, 0.8, 0.0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
+      new PIDConstants(1.8, 0.1, 0.0), // PID constants to correct for rotation error (used to create the rotation controller)
       state, // Module states consumer used to output to the drive subsystem
       eventMap,
       true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
       m_drivetrainSubsystem // The drive subsystem. Used to properly set the requirements of path following commands
   );
   
-  Command fullAuto = autoBuilder.fullAuto(practicePath);
-
-
+   Command fullAuto = autoBuilder.fullAuto(practicePath);
 /* 
         PIDController pidX = new PIDController(.25, 0, 0);
         PIDController pidY = new PIDController(.25, 0, 0);
@@ -174,7 +173,6 @@ SwerveDriveKinematics m_kinematics = m_drivetrainSubsystem.getKinematics();
          new PPSwerveControllerCommand(traj, position, pidX, pidY, pidRotation, speed, isFirstPath, m_drivetrainSubsystem)
      );
  }*/
-
 
   public Command getAutonomousCommand() {
     // An ExampleCommand will run in autonomous
@@ -206,5 +204,20 @@ SwerveDriveKinematics m_kinematics = m_drivetrainSubsystem.getKinematics();
   public static SwerveDriveOdometry getOdometry()
   {
     return m_odometry;
+  }
+
+  public PathPlannerTrajectory getAutoPath()
+  {
+    return practicePath;
+  }
+
+  public SwerveAutoBuilder getAutoBuilder()
+  {
+    return autoBuilder;
+  }
+
+  public Command getFullAuto()
+  {
+    return fullAuto;
   }
 }
