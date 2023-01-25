@@ -5,6 +5,6 @@
 package frc.robot.commands;
 
 /** Add your docs here. */
-public class autonomous {
+public class ResetTrajectory {
 
 }

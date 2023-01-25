@@ -4,6 +4,9 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.PigeonIMU;
 import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
@@ -33,6 +36,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 
 import static frc.robot.Constants.*;
 
@@ -40,6 +44,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
+import javax.lang.model.util.ElementScanner14;
 
 public class DrivetrainSubsystem extends SubsystemBase {
 
@@ -54,7 +60,10 @@ public class DrivetrainSubsystem extends SubsystemBase {
         PIDController pidY = new PIDController(.25, 0, 0);
         PIDController pidRotation = new PIDController(2.8, 0, 0);
 
-        
+        CANCoder frontLeftSteerEncoder = new CANCoder(FRONT_LEFT_MODULE_STEER_ENCODER);
+        CANCoder frontRightSteerEncoder = new CANCoder(FRONT_RIGHT_MODULE_STEER_ENCODER);
+        CANCoder backLeftSteerEncoder = new CANCoder(BACK_LEFT_MODULE_STEER_ENCODER);
+        CANCoder backRightSteerEncoder = new CANCoder(BACK_RIGHT_MODULE_STEER_ENCODER);
 
         
 
@@ -116,18 +125,30 @@ private final com.ctre.phoenix.sensors.Pigeon2 m_pigeon2 = new com.ctre.phoenix.
 
   private ChassisSpeeds m_chassisSpeeds = new ChassisSpeeds(0.0, 0.0, 0.0);
 
-  
+  WPI_TalonFX driveMotor1;
+  WPI_TalonFX driveMotor2;
+  WPI_TalonFX driveMotor3;
+  WPI_TalonFX driveMotor4;
+
+  Pose2d robotPose = new Pose2d();
 
   public DrivetrainSubsystem() {
     ShuffleboardTab tab = Shuffleboard.getTab("Drivetrain");
 
-    
+        driveMotor1 = new WPI_TalonFX(FRONT_RIGHT_MODULE_DRIVE_MOTOR);
+        driveMotor2 = new WPI_TalonFX(BACK_RIGHT_MODULE_DRIVE_MOTOR);
+        driveMotor3 = new WPI_TalonFX(BACK_LEFT_MODULE_DRIVE_MOTOR);
+        driveMotor4 = new WPI_TalonFX(FRONT_LEFT_MODULE_DRIVE_MOTOR);
 
-     //Mk4SwerveModuleHelper.createFalcon500(Mk4SwerveModuleHelper.GearRatio.L2, 1, 2, 1, Constants.FRONT_RIGHT_MODULE_STEER_OFFSET);
-     //Mk4SwerveModuleHelper.createFalcon500(Mk4SwerveModuleHelper.GearRatio.L2, 3, 4, 2, Constants.BACK_RIGHT_MODULE_STEER_OFFSET);
-     //Mk4SwerveModuleHelper.createFalcon500(Mk4SwerveModuleHelper.GearRatio.L2, 5, 6, 3, Constants.BACK_LEFT_MODULE_STEER_OFFSET);
-     //Mk4SwerveModuleHelper.createFalcon500(Mk4SwerveModuleHelper.GearRatio.L2, 7, 8, 4, Constants.FRONT_LEFT_MODULE_STEER_OFFSET);
+        driveMotor1.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
+        driveMotor2.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
+        driveMotor3.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
+        driveMotor4.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor);
 
+        driveMotor1.setSelectedSensorPosition(0);
+        driveMotor2.setSelectedSensorPosition(0);
+        driveMotor3.setSelectedSensorPosition(0);
+        driveMotor4.setSelectedSensorPosition(0);
 
     //   Your module has two Falcon 500s on it. One for steering and one for driving.
     //
@@ -146,7 +167,6 @@ private final com.ctre.phoenix.sensors.Pigeon2 m_pigeon2 = new com.ctre.phoenix.
     // you MUST change it. If you do not, your code will crash on startup.
     // FIXME Setup motor configuration
 
-        
 
     m_frontLeftModule = Mk4SwerveModuleHelper.createFalcon500(
             // This parameter is optional, but will allow you to see the current state of the module on the dashboard.
@@ -200,14 +220,6 @@ private final com.ctre.phoenix.sensors.Pigeon2 m_pigeon2 = new com.ctre.phoenix.
     );
   }
 
-  SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(m_kinematics, getGyroscopeRotation(),
-        new SwerveModulePosition[]{    
-         //       m_frontLeftModule.getPosition(),
-           //     m_frontRightModule.getPosition(),
-             //   m_backLeftModule.getPosition(),
-               // m_backRightModule.getPosition()
-        });
-
   /**
    * Sets the gyroscope angle to zero. This can be used to set the direction the robot is currently facing to the
    * 'forwards' direction.
@@ -243,37 +255,51 @@ return Rotation2d.fromDegrees(m_pigeon2.getYaw());
 
   @Override
   public void periodic() {
-    SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(m_chassisSpeeds);
+        SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(m_chassisSpeeds);
     //SwerveDriveKinematics.normalizeWheelSpeeds(states, MAX_VELOCITY_METERS_PER_SECOND);
-
     m_frontLeftModule.set(states[0].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[0].angle.getRadians());
     m_frontRightModule.set(states[1].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[1].angle.getRadians());
     m_backLeftModule.set(states[2].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[2].angle.getRadians());
     m_backRightModule.set(states[3].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[3].angle.getRadians());
 
+
+    Rotation2d gyroAngle = getGyro();
+
+  // Update the pose
+  robotPose = RobotContainer.getOdometry().update(gyroAngle,
+    new SwerveModulePosition[] {
+      frontLeftPos(), frontRightPos(),
+      backLeftPos(), backRightPos()
+    });
+}
+
+public SwerveModulePosition getPosition(int moduleNum) {
         
-  }
+        double driveEncoder1pos = driveMotor1.getSelectedSensorPosition();
+        double driveEncoder2pos = driveMotor2.getSelectedSensorPosition();
+        double driveEncoder3pos = driveMotor3.getSelectedSensorPosition();
+        double driveEncoder4pos = driveMotor4.getSelectedSensorPosition();
 
-  Consumer<ChassisSpeeds> speed = new Consumer<ChassisSpeeds>() {
-
-        @Override
-        public void accept(ChassisSpeeds arg0) {
-                // TODO Auto-generated method stub
-                
+        if(moduleNum == 1)
+        {
+                return new SwerveModulePosition(driveEncoder1pos * Math.PI * .10033/((1/6.75) * 4096), new Rotation2d(frontRightSteerEncoder.getAbsolutePosition()*Math.PI/180));
         }
-    };
-
-  
-     
-/* 
-public Command autoGetter()
-{
-return fullAuto;
-}*/
-
-
+        else if(moduleNum == 2)
+        {
+                return new SwerveModulePosition(driveEncoder2pos * Math.PI * .10033/((1/6.75) * 4096), new Rotation2d(backRightSteerEncoder.getAbsolutePosition()*Math.PI/180));
+        }
+        else if(moduleNum == 3)
+        {
+                return new SwerveModulePosition(driveEncoder3pos * Math.PI * .10033/((1/6.75) * 4096), new Rotation2d(backLeftSteerEncoder.getAbsolutePosition()*Math.PI/180));
+        }
+        else
+        {
+                return new SwerveModulePosition(driveEncoder4pos * Math.PI * .10033/((1/6.75) * 4096), new Rotation2d(frontLeftSteerEncoder.getAbsolutePosition()*Math.PI/180));
+        }
+}
 public SwerveDriveKinematics getKinematics()
 {
+        // MASON MCMANUS WROTE THIS
         return m_kinematics;
 }
 public ChassisSpeeds getCurrentSpeed()
@@ -291,16 +317,41 @@ public ChassisSpeeds getCurrentSpeed()
         return speed;
 }
 
-/*public Pose2d getPose()
+public Pose2d getPose()
 {
-Pose2d currentPose;
+Translation2d roboPos = new Translation2d(backLeftPos.getX()+0.2286, backLeftPos.getY()+0.2286);
+Pose2d currentPose = new Pose2d(roboPos, getGyroscopeRotation());
 return currentPose;
-
-}*/
-
-public void resetPose()
-{
 
 }
 
+public void resetPose()
+{
+        zeroGyroscope();
+        robotPose = new Pose2d();
+}
+
+public SwerveModulePosition frontLeftPos()
+{
+        return getPosition(4);
+}
+
+public SwerveModulePosition frontRightPos()
+{
+        return getPosition(1);
+}
+
+public SwerveModulePosition backLeftPos()
+{
+        return getPosition(3);
+}
+
+public SwerveModulePosition backRightPos()
+{
+        return getPosition(2);
+}
+public Rotation2d getGyro()
+{
+        return getGyroscopeRotation();
+}
 }

@@ -22,8 +22,11 @@ import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
@@ -43,7 +46,7 @@ import frc.robot.subsystems.DrivetrainSubsystem;
  */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  private final DrivetrainSubsystem m_drivetrainSubsystem = new DrivetrainSubsystem();
+  private final static DrivetrainSubsystem m_drivetrainSubsystem = new DrivetrainSubsystem();
 
   private final XboxController m_controller = new XboxController(0);
   JoystickButton buttonA = new JoystickButton(m_controller, 1);
@@ -64,9 +67,20 @@ public class RobotContainer {
             () -> -modifyAxis(m_controller.getRightX()) * DrivetrainSubsystem.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND
     ));
 
+    m_drivetrainSubsystem.resetPose();
     // Configure the button bindings
     configureButtonBindings();
   }
+
+  static SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(m_drivetrainSubsystem.getKinematics(), m_drivetrainSubsystem.getGyroscopeRotation(), 
+  
+  new SwerveModulePosition[]
+  {
+    m_drivetrainSubsystem.frontLeftPos(),
+    m_drivetrainSubsystem.frontRightPos(),
+    m_drivetrainSubsystem.backLeftPos(),
+    m_drivetrainSubsystem.backRightPos()
+  }, new Pose2d(m_drivetrainSubsystem.getPose().getX(), m_drivetrainSubsystem.getPose().getY(), new Rotation2d()));
 
   /**
    * Use this method to define your button->command mappings. Buttons can be created by
@@ -104,7 +118,7 @@ Consumer<SwerveModuleState[]> state = new Consumer<SwerveModuleState[]>() {
     DoubleSupplier transYDoubleSupplier = () -> 0.0;
     DoubleSupplier rotationSupplier = () -> 0.0;
     new DefaultDriveCommand(m_drivetrainSubsystem, transXDoubleSupplier, transYDoubleSupplier, rotationSupplier);*/
-    m_drivetrainSubsystem.drive(new ChassisSpeeds(4, 4, 2));
+    m_drivetrainSubsystem.drive(new ChassisSpeeds(1, 1, 0.5));
   
   }
   
@@ -114,14 +128,14 @@ Consumer<Pose2d> poseConsumer = new Consumer<Pose2d>() {
   @Override
   public void accept(Pose2d arg0) {
           // TODO Auto-generated method stub
-  
+      m_drivetrainSubsystem.getPose();
   }
   
 };
 Supplier<Pose2d> position = () -> new Pose2d();
 SwerveDriveKinematics m_kinematics = m_drivetrainSubsystem.getKinematics();
 
-  PathPlannerTrajectory practicePath = PathPlanner.loadPath("practice", new PathConstraints(5, 2));
+  PathPlannerTrajectory practicePath = PathPlanner.loadPath("practice", new PathConstraints(1, 0.75));
 
   HashMap<String, Command> eventMap = new HashMap<>();
   //eventMap.put("marker1", new PrintCommand("Passed marker 1"));
@@ -132,9 +146,9 @@ SwerveDriveKinematics m_kinematics = m_drivetrainSubsystem.getKinematics();
   SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
       position, // Pose2d supplier
       poseConsumer, // Pose2d consumer, used to reset odometry at the beginning of auto
-      m_kinematics, // SwerveDriveKinematics
-      new PIDConstants(.25, 0, 0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
-      new PIDConstants(2.8, 0, 0), // PID constants to correct for rotation error (used to create the rotation controller)
+      m_kinematics, // SwerveDriveKinematics BY MASON MCMANUS 
+      new PIDConstants(.9, 0, 0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
+      new PIDConstants(1.8, 0.1, 0), // PID constants to correct for rotation error (used to create the rotation controller)
       state, // Module states consumer used to output to the drive subsystem
       eventMap,
       true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
@@ -144,7 +158,7 @@ SwerveDriveKinematics m_kinematics = m_drivetrainSubsystem.getKinematics();
   Command fullAuto = autoBuilder.fullAuto(practicePath);
 
 
-
+/* 
         PIDController pidX = new PIDController(.25, 0, 0);
         PIDController pidY = new PIDController(.25, 0, 0);
         PIDController pidRotation = new PIDController(2.8, 0, 0);
@@ -159,12 +173,12 @@ SwerveDriveKinematics m_kinematics = m_drivetrainSubsystem.getKinematics();
          }),
          new PPSwerveControllerCommand(traj, position, pidX, pidY, pidRotation, speed, isFirstPath, m_drivetrainSubsystem)
      );
- }
+ }*/
 
 
   public Command getAutonomousCommand() {
     // An ExampleCommand will run in autonomous
-    return followTrajectoryCommand(practicePath, false);
+    return fullAuto;
   }
 
   private static double deadband(double value, double deadband) {
@@ -187,5 +201,10 @@ SwerveDriveKinematics m_kinematics = m_drivetrainSubsystem.getKinematics();
     value = Math.copySign(value * value, value);
 
     return value;
+  }
+
+  public static SwerveDriveOdometry getOdometry()
+  {
+    return m_odometry;
   }
 }
