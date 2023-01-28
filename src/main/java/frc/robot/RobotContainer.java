@@ -21,6 +21,7 @@ import com.pathplanner.lib.auto.SwerveAutoBuilder;
 import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -55,7 +56,7 @@ public class RobotContainer {
   static PathPlannerTrajectory practicePath = PathPlanner.loadPath("practice", new PathConstraints(1, 0.75));
   
 
-  PathContainer pathContainer = new PathContainer("practice", m_drivetrainSubsystem.getSpee(), 0, true, false);
+  PathContainer pathContainer = new PathContainer("practice", new double[]{1.0, 0.75}, 0, true, false);
   
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -122,7 +123,7 @@ static Consumer<SwerveModuleState[]> state = new Consumer<SwerveModuleState[]>()
           // TODO Auto-generated method stub
    
     m_drivetrainSubsystem.drive(new ChassisSpeeds(1, 0, 0));
-    m_drivetrainSubsystem.updateStates(arg0);
+    
   }
   
 };
@@ -160,7 +161,7 @@ static HashMap<String, Command> eventMap = new HashMap<>();
       m_drivetrainSubsystem // The drive subsystem. Used to properly set the requirements of path following commands
   );
   
-/* 
+ /* 
   SwerveControllerCommand autonomousCommand = new SwerveControllerCommand(
     practicePath, 
     m_drivetrainSubsystem.getPose(), 
@@ -168,7 +169,7 @@ static HashMap<String, Command> eventMap = new HashMap<>();
     new PIDController(0, 0, 0), 
     new PIDController(0, 0, 0),
     new ProfiledPIDController(0, 0, 0)
-    m_drivetrainSubsystem.updateStates(), 
+    state, 
     m_drivetrainSubsystem
   );*/
 
