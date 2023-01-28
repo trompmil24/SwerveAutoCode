@@ -37,6 +37,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
+import frc.robot.commands.ResetTrajectory;
 
 import static frc.robot.Constants.*;
 
@@ -130,14 +131,14 @@ private final com.ctre.phoenix.sensors.Pigeon2 m_pigeon2 = new com.ctre.phoenix.
   WPI_TalonFX driveMotor3 = new WPI_TalonFX(BACK_LEFT_MODULE_DRIVE_MOTOR);
   WPI_TalonFX driveMotor4 = new WPI_TalonFX(FRONT_LEFT_MODULE_DRIVE_MOTOR);
 
-  
+  private SwerveModuleState[] m_desiredStates;
 
   Pose2d robotPose = new Pose2d();
-
+        private double offset = 0;
   public DrivetrainSubsystem() {
     ShuffleboardTab tab = Shuffleboard.getTab("Drivetrain");
 
-       /*  driveMotor1 = new WPI_TalonFX(FRONT_RIGHT_MODULE_DRIVE_MOTOR);
+        driveMotor1 = new WPI_TalonFX(FRONT_RIGHT_MODULE_DRIVE_MOTOR);
         driveMotor2 = new WPI_TalonFX(BACK_RIGHT_MODULE_DRIVE_MOTOR);
         driveMotor3 = new WPI_TalonFX(BACK_LEFT_MODULE_DRIVE_MOTOR);
         driveMotor4 = new WPI_TalonFX(FRONT_LEFT_MODULE_DRIVE_MOTOR);
@@ -150,7 +151,7 @@ private final com.ctre.phoenix.sensors.Pigeon2 m_pigeon2 = new com.ctre.phoenix.
         driveMotor1.setSelectedSensorPosition(0);
         driveMotor2.setSelectedSensorPosition(0);
         driveMotor3.setSelectedSensorPosition(0);
-        driveMotor4.setSelectedSensorPosition(0);*/
+        driveMotor4.setSelectedSensorPosition(0);
 
     //   Your module has two Falcon 500s on it. One for steering and one for driving.
     //
@@ -230,6 +231,7 @@ private final com.ctre.phoenix.sensors.Pigeon2 m_pigeon2 = new com.ctre.phoenix.
     // FIXME Remove if you are using a Pigeon
 //m_pigeon.setFusedHeading(0.0);
 m_pigeon2.setYaw(0);
+resetOdometry();
 
     // FIXME Uncomment if you are using a NavX
 //    m_navx.zeroYaw();
@@ -284,19 +286,19 @@ public SwerveModulePosition getPosition(int moduleNum) {
 
         if(moduleNum == 1)
         {
-                return new SwerveModulePosition(driveEncoder1pos * Math.PI * .10033/((1/6.75) * 4096), new Rotation2d(frontRightSteerEncoder.getAbsolutePosition()*Math.PI/180));
+                return new SwerveModulePosition(driveEncoder1pos * Math.PI * SdsModuleConfigurations.MK4_L2.getWheelDiameter()/((1/6.75) * 4096), new Rotation2d(frontRightSteerEncoder.getAbsolutePosition()*Math.PI/180));
         }
         else if(moduleNum == 2)
         {
-                return new SwerveModulePosition(driveEncoder2pos * Math.PI * .10033/((1/6.75) * 4096), new Rotation2d(backRightSteerEncoder.getAbsolutePosition()*Math.PI/180));
+                return new SwerveModulePosition(driveEncoder2pos * Math.PI * SdsModuleConfigurations.MK4_L2.getWheelDiameter()/((1/6.75) * 4096), new Rotation2d(backRightSteerEncoder.getAbsolutePosition()*Math.PI/180));
         }
         else if(moduleNum == 3)
         {
-                return new SwerveModulePosition(driveEncoder3pos * Math.PI * .10033/((1/6.75) * 4096), new Rotation2d(backLeftSteerEncoder.getAbsolutePosition()*Math.PI/180));
+                return new SwerveModulePosition(driveEncoder3pos * Math.PI * SdsModuleConfigurations.MK4_L2.getWheelDiameter()/((1/6.75) * 4096), new Rotation2d(backLeftSteerEncoder.getAbsolutePosition()*Math.PI/180));
         }
         else
         {
-                return new SwerveModulePosition(driveEncoder4pos * Math.PI * .10033/((1/6.75) * 4096), new Rotation2d(frontLeftSteerEncoder.getAbsolutePosition()*Math.PI/180));
+                return new SwerveModulePosition(driveEncoder4pos * Math.PI * SdsModuleConfigurations.MK4_L2.getWheelDiameter()/((1/6.75) * 4096), new Rotation2d(frontLeftSteerEncoder.getAbsolutePosition()*Math.PI/180));
         }
 }
 public SwerveDriveKinematics getKinematics()
@@ -334,6 +336,7 @@ public void resetOdometry()
         {frontLeftPos(), frontRightPos(), backLeftPos(), frontRightPos()}, 
         getPose()
         );
+        //zeroGyroscope();
 }
 
 public void resetOdometry(Pose2d resetPos) {
@@ -342,6 +345,19 @@ public void resetOdometry(Pose2d resetPos) {
         {frontLeftPos(), frontRightPos(), backLeftPos(), backRightPos()}, 
         resetPos
         );
+}
+
+public void updateStates(SwerveModuleState[] states) {
+
+        m_desiredStates = states;
+}
+
+public void setOffset(double offset) {
+        this.offset = offset;
+}
+
+public double getOffset() {
+        return offset;
 }
 
 public SwerveModulePosition frontLeftPos()
@@ -367,4 +383,12 @@ public Rotation2d getGyro()
 {
         return getGyroscopeRotation();
 }
+
+double[] spee = new double[]{1.0, 0.75};
+
+public double[] getSpee()
+{
+        return spee;
+}
+
 }

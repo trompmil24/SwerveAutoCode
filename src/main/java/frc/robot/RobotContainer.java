@@ -35,7 +35,8 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.DefaultDriveCommand;
-import frc.robot.commands.autonomous;
+import frc.robot.commands.PathContainer;
+import frc.robot.commands.RunAutonomous;
 import frc.robot.subsystems.DrivetrainSubsystem;
 
 /**
@@ -50,7 +51,11 @@ public class RobotContainer {
 
   private final XboxController m_controller = new XboxController(0);
   JoystickButton buttonA = new JoystickButton(m_controller, 1);
+  static PathPlannerTrajectory practicePath = PathPlanner.loadPath("practice", new PathConstraints(1, 0.75));
+  
 
+  PathContainer pathContainer = new PathContainer("practice", m_drivetrainSubsystem.getSpee(), 0, true, false);
+  
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -109,74 +114,59 @@ public class RobotContainer {
       m_drivetrainSubsystem.getCurrentSpeed();
     }
 };
-Consumer<SwerveModuleState[]> state = new Consumer<SwerveModuleState[]>() {
+static Consumer<SwerveModuleState[]> state = new Consumer<SwerveModuleState[]>() {
 
   @Override
   public void accept(SwerveModuleState[] arg0) {
           // TODO Auto-generated method stub
-    /*DoubleSupplier transXDoubleSupplier = () -> 0.0;
-    DoubleSupplier transYDoubleSupplier = () -> 0.0;
-    DoubleSupplier rotationSupplier = () -> 0.0;
-    new DefaultDriveCommand(m_drivetrainSubsystem, transXDoubleSupplier, transYDoubleSupplier, rotationSupplier);*/
+    DoubleSupplier transXDoubleSupplier = () -> m_drivetrainSubsystem.getPose().getX();
+    DoubleSupplier transYDoubleSupplier = () -> m_drivetrainSubsystem.getPose().getY();;
+    DoubleSupplier rotationSupplier = () -> m_drivetrainSubsystem.getGyroscopeRotation().getRadians();
+    //new DefaultDriveCommand(m_drivetrainSubsystem, transXDoubleSupplier, transYDoubleSupplier, rotationSupplier);
     m_drivetrainSubsystem.drive(new ChassisSpeeds(1, 1, 0.5));
   
   }
   
 };
-Consumer<Pose2d> poseConsumer = new Consumer<Pose2d>() {
+static Consumer<Pose2d> poseConsumer = new Consumer<Pose2d>() {
 
   @Override
   public void accept(Pose2d arg0) {
           // TODO Auto-generated method stub
+          m_drivetrainSubsystem.getPose();
       m_drivetrainSubsystem.resetOdometry();
-      //m_drivetrainSubsystem.getPose();
+      
   }
   
 };
-Supplier<Pose2d> position = () -> new Pose2d(m_drivetrainSubsystem.getPose().getX(), m_drivetrainSubsystem.getPose().getY(), m_drivetrainSubsystem.getGyroscopeRotation());
-SwerveDriveKinematics m_kinematics = m_drivetrainSubsystem.getKinematics();
+static Supplier<Pose2d> position = () -> new Pose2d(m_drivetrainSubsystem.getPose().getX(), m_drivetrainSubsystem.getPose().getY(), m_drivetrainSubsystem.getGyroscopeRotation());
+static SwerveDriveKinematics m_kinematics = m_drivetrainSubsystem.getKinematics();
 
-PathPlannerTrajectory practicePath = PathPlanner.loadPath("practice", new PathConstraints(1, 0.75));
 
-HashMap<String, Command> eventMap = new HashMap<>();
+
+static HashMap<String, Command> eventMap = new HashMap<>();
   //eventMap.put("marker1", new PrintCommand("Passed marker 1"));
   //eventMap.put("intakeDown", new IntakeDown());
   //ArrayList<PathPlannerTrajectory> pathGroup = new ArrayList<PathPlannerTrajectory>(PathPlanner.loadPathGroup("practice", new PathConstraints(3, 2)));
   
   // Create the AutoBuilder. This only needs to be created once when robot code starts, not every time you want to create an auto command. A good place to put this is in RobotContainer along with your subsystems.
-   SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
+   static SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
       position, // Pose2d supplier
       poseConsumer, // Pose2d consumer, used to reset odometry at the beginning of auto
       m_kinematics, // SwerveDriveKinematics BY MASON MCMANUS 
-      new PIDConstants(0.8, 0.8, 0.0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
-      new PIDConstants(1.8, 0.1, 0.0), // PID constants to correct for rotation error (used to create the rotation controller)
+      new PIDConstants(0.25, 0.0, 0.0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
+      new PIDConstants(2.8, 0.0, 0.0), // PID constants to correct for rotation error (used to create the rotation controller)
       state, // Module states consumer used to output to the drive subsystem
       eventMap,
       true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
       m_drivetrainSubsystem // The drive subsystem. Used to properly set the requirements of path following commands
   );
   
-   Command fullAuto = autoBuilder.fullAuto(practicePath);
-/* 
-        PIDController pidX = new PIDController(.25, 0, 0);
-        PIDController pidY = new PIDController(.25, 0, 0);
-        PIDController pidRotation = new PIDController(2.8, 0, 0);
-  public Command followTrajectoryCommand(PathPlannerTrajectory traj, boolean isFirstPath) {
-    return new SequentialCommandGroup(
-          new InstantCommand(() -> {
-           // Reset odometry for the first path you run during auto
-           if(isFirstPath){
-               //this.resetOdometry(traj.getInitialHolonomicPose());
-           }
-           
-         }),
-         new PPSwerveControllerCommand(traj, position, pidX, pidY, pidRotation, speed, isFirstPath, m_drivetrainSubsystem)
-     );
- }*/
-
+   static Command fullAuto = autoBuilder.fullAuto(practicePath);
+  SequentialCommandGroup auto = new SequentialCommandGroup(new RunAutonomous(m_drivetrainSubsystem, pathContainer));
   public Command getAutonomousCommand() {
     // An ExampleCommand will run in autonomous
-    return fullAuto;
+    return auto;
   }
 
   private static double deadband(double value, double deadband) {
@@ -216,7 +206,7 @@ HashMap<String, Command> eventMap = new HashMap<>();
     return autoBuilder;
   }
 
-  public Command getFullAuto()
+  public static Command getFullAuto()
   {
     return fullAuto;
   }
