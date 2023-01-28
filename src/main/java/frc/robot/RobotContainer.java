@@ -32,6 +32,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.DefaultDriveCommand;
@@ -119,12 +120,9 @@ static Consumer<SwerveModuleState[]> state = new Consumer<SwerveModuleState[]>()
   @Override
   public void accept(SwerveModuleState[] arg0) {
           // TODO Auto-generated method stub
-    DoubleSupplier transXDoubleSupplier = () -> m_drivetrainSubsystem.getPose().getX();
-    DoubleSupplier transYDoubleSupplier = () -> m_drivetrainSubsystem.getPose().getY();;
-    DoubleSupplier rotationSupplier = () -> m_drivetrainSubsystem.getGyroscopeRotation().getRadians();
-    //new DefaultDriveCommand(m_drivetrainSubsystem, transXDoubleSupplier, transYDoubleSupplier, rotationSupplier);
-    m_drivetrainSubsystem.drive(new ChassisSpeeds(1, 1, 0.5));
-  
+   
+    m_drivetrainSubsystem.drive(new ChassisSpeeds(1, 0, 0));
+    m_drivetrainSubsystem.updateStates(arg0);
   }
   
 };
@@ -133,7 +131,7 @@ static Consumer<Pose2d> poseConsumer = new Consumer<Pose2d>() {
   @Override
   public void accept(Pose2d arg0) {
           // TODO Auto-generated method stub
-          m_drivetrainSubsystem.getPose();
+          //m_drivetrainSubsystem.getPose();
       m_drivetrainSubsystem.resetOdometry();
       
   }
@@ -154,16 +152,29 @@ static HashMap<String, Command> eventMap = new HashMap<>();
       position, // Pose2d supplier
       poseConsumer, // Pose2d consumer, used to reset odometry at the beginning of auto
       m_kinematics, // SwerveDriveKinematics BY MASON MCMANUS 
-      new PIDConstants(0.25, 0.0, 0.0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
-      new PIDConstants(2.8, 0.0, 0.0), // PID constants to correct for rotation error (used to create the rotation controller)
+      new PIDConstants(0.001, 0.0, 10), // PID constants to correct for translation error (used to create the X and Y PID controllers)
+      new PIDConstants(3.4, 0.0, 0.0), // PID constants to correct for rotation error (used to create the rotation controller)
       state, // Module states consumer used to output to the drive subsystem
       eventMap,
       true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
       m_drivetrainSubsystem // The drive subsystem. Used to properly set the requirements of path following commands
   );
   
+/* 
+  SwerveControllerCommand autonomousCommand = new SwerveControllerCommand(
+    practicePath, 
+    m_drivetrainSubsystem.getPose(), 
+    m_kinematics, 
+    new PIDController(0, 0, 0), 
+    new PIDController(0, 0, 0),
+    new ProfiledPIDController(0, 0, 0)
+    m_drivetrainSubsystem.updateStates(), 
+    m_drivetrainSubsystem
+  );*/
+
+
    static Command fullAuto = autoBuilder.fullAuto(practicePath);
-  SequentialCommandGroup auto = new SequentialCommandGroup(new RunAutonomous(m_drivetrainSubsystem, pathContainer), fullAuto);
+  SequentialCommandGroup auto = new SequentialCommandGroup(new RunAutonomous(m_drivetrainSubsystem, pathContainer));
   public Command getAutonomousCommand() {
     // An ExampleCommand will run in autonomous
     return auto;

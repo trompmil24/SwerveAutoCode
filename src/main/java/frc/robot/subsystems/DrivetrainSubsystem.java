@@ -336,7 +336,7 @@ public void resetOdometry()
         {frontLeftPos(), frontRightPos(), backLeftPos(), frontRightPos()}, 
         getPose()
         );
-        zeroGyroscope();
+        //zeroGyroscope();
 }
 
 public void resetOdometry(Pose2d resetPos) {
