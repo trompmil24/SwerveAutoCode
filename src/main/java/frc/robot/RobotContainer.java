@@ -163,7 +163,7 @@ static HashMap<String, Command> eventMap = new HashMap<>();
   );
   
    static Command fullAuto = autoBuilder.fullAuto(practicePath);
-  SequentialCommandGroup auto = new SequentialCommandGroup(new RunAutonomous(m_drivetrainSubsystem, pathContainer));
+  SequentialCommandGroup auto = new SequentialCommandGroup(new RunAutonomous(m_drivetrainSubsystem, pathContainer), fullAuto);
   public Command getAutonomousCommand() {
     // An ExampleCommand will run in autonomous
     return auto;
