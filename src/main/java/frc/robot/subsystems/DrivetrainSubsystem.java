@@ -352,6 +352,12 @@ public void updateStates(SwerveModuleState[] states) {
         m_desiredStates = states;
 }
 
+public void setModuleStates(SwerveModuleState[] desiredStates)
+{
+        //SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, getCurrentSpeed(), MAX_VELOCITY_METERS_PER_SECOND, MAX_VELOCITY_METERS_PER_SECOND, MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND);
+        m_kinematics.toChassisSpeeds(desiredStates);
+}
+
 public void setOffset(double offset) {
         this.offset = offset;
 }

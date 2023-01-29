@@ -62,6 +62,11 @@ public class FollowTrajectory extends CommandBase {
 
   }
 
+  public double getTime()
+  {
+    return timer.get();
+  }
+
   @Override
   public boolean isFinished() {
     return false;

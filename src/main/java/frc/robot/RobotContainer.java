@@ -56,7 +56,7 @@ public class RobotContainer {
   static PathPlannerTrajectory practicePath = PathPlanner.loadPath("practice", new PathConstraints(1, 0.75));
   
 
-  PathContainer pathContainer = new PathContainer("practice", new double[]{1.0, 0.75}, 0, true, false);
+  PathContainer pathContainer = new PathContainer("practice", new double[]{practicePath.sample(0).velocityMetersPerSecond, practicePath.sample(0).accelerationMetersPerSecondSq}, 0, true, false);
   
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -123,6 +123,7 @@ static Consumer<SwerveModuleState[]> state = new Consumer<SwerveModuleState[]>()
           // TODO Auto-generated method stub
    
     m_drivetrainSubsystem.drive(new ChassisSpeeds(1, 0, 0));
+    //m_drivetrainSubsystem.setModuleStates(arg0);
     
   }
   
@@ -168,7 +169,7 @@ static HashMap<String, Command> eventMap = new HashMap<>();
     m_kinematics, 
     new PIDController(0, 0, 0), 
     new PIDController(0, 0, 0),
-    new ProfiledPIDController(0, 0, 0)
+    new ProfiledPIDController(0, 0, 0, Constants.auto.follower.ROT_PROFILE)
     state, 
     m_drivetrainSubsystem
   );*/
