@@ -154,7 +154,7 @@ static HashMap<String, Command> eventMap = new HashMap<>();
       position, // Pose2d supplier
       poseConsumer, // Pose2d consumer, used to reset odometry at the beginning of auto
       m_kinematics, // SwerveDriveKinematics BY MASON MCMANUS 
-      new PIDConstants(0.001, 0.0, 10), // PID constants to correct for translation error (used to create the X and Y PID controllers)
+      new PIDConstants(0.25, 0.0, 0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
       new PIDConstants(3.4, 0.0, 0.0), // PID constants to correct for rotation error (used to create the rotation controller)
       state, // Module states consumer used to output to the drive subsystem
       eventMap,
@@ -222,5 +222,10 @@ static HashMap<String, Command> eventMap = new HashMap<>();
   public static Command getFullAuto()
   {
     return fullAuto;
+  }
+
+  public static DrivetrainSubsystem getDriveSubsystem()
+  {
+    return m_drivetrainSubsystem;
   }
 }
