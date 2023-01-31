@@ -29,11 +29,10 @@ public class RunAutonomous extends SequentialCommandGroup {
     // addCommands(new FooCommand(), new BarCommand());
     addCommands(
       new ResetTrajectory(m_Subsystem, pathContainer, PoseAtTime.START),
-      RobotContainer.getFullAuto()
       //RobotContainer.getFullAuto()
-      /*new FollowTrajectory(m_Subsystem, pathContainer).withTimeout(pathContainer.getTimeout()),
+      new FollowTrajectory(m_Subsystem, pathContainer).withTimeout(pathContainer.getTimeout()),
       new ConditionalCommand(new ResetTrajectory(m_Subsystem, pathContainer, PoseAtTime.END),
-          new InstantCommand(), pathContainer::getResetOnEnd)*/
+          new InstantCommand(), pathContainer::getResetOnEnd)
     );
   }
 }

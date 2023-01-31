@@ -56,7 +56,7 @@ public class RobotContainer {
 
   private final XboxController m_controller = new XboxController(0);
   JoystickButton buttonA = new JoystickButton(m_controller, 1);
-  static PathPlannerTrajectory practicePath = PathPlanner.loadPath("practice", new PathConstraints(1, 0.75));
+  static PathPlannerTrajectory practicePath = PathPlanner.loadPath("practice", new PathConstraints(1, 0.50));
 
   @SuppressWarnings("rawtypes")
   private static SendableChooser m_autoChooser;
@@ -124,75 +124,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
 
-   Consumer<ChassisSpeeds> speed = new Consumer<ChassisSpeeds>() {
-
-    @Override
-    public void accept(ChassisSpeeds arg0) {
-            // TODO Auto-generated method stub
-      m_drivetrainSubsystem.getCurrentSpeed();
-    }
-};
-/* 
-static Consumer<SwerveModuleState[]> state = new Consumer<SwerveModuleState[]>() {
-
-  @Override
-  public void accept(SwerveModuleState[] arg0) {
-          // TODO Auto-generated method stub
-   
-    m_drivetrainSubsystem.drive(new ChassisSpeeds(1, 0, 0));
-    //m_drivetrainSubsystem.setModuleStates(arg0);
-    
-  }*/
-  
-//};
-static Consumer<Pose2d> poseConsumer = new Consumer<Pose2d>() {
-
-  @Override
-  public void accept(Pose2d arg0) {
-          // TODO Auto-generated method stub
-          //m_drivetrainSubsystem.getPose();
-      m_drivetrainSubsystem.resetOdometry();
-      
-  }
-  
-};
-static Supplier<Pose2d> position = () -> new Pose2d(m_drivetrainSubsystem.getPose().getX(), m_drivetrainSubsystem.getPose().getY(), m_drivetrainSubsystem.getGyroscopeRotation());
 static SwerveDriveKinematics m_kinematics = m_drivetrainSubsystem.getKinematics();
-
-
-/* 
-static HashMap<String, Command> eventMap = new HashMap<>();
-  //eventMap.put("marker1", new PrintCommand("Passed marker 1"));
-  //eventMap.put("intakeDown", new IntakeDown());
-  //ArrayList<PathPlannerTrajectory> pathGroup = new ArrayList<PathPlannerTrajectory>(PathPlanner.loadPathGroup("practice", new PathConstraints(3, 2)));
-  
-  // Create the AutoBuilder. This only needs to be created once when robot code starts, not every time you want to create an auto command. A good place to put this is in RobotContainer along with your subsystems.
-   static SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
-      position, // Pose2d supplier
-      poseConsumer, // Pose2d consumer, used to reset odometry at the beginning of auto
-      m_kinematics, // SwerveDriveKinematics BY MASON MCMANUS 
-      new PIDConstants(0.25, 0.0, 0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
-      new PIDConstants(3.4, 0.0, 0.0), // PID constants to correct for rotation error (used to create the rotation controller)
-      state, // Module states consumer used to output to the drive subsystem
-      eventMap,
-      true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
-      m_drivetrainSubsystem // The drive subsystem. Used to properly set the requirements of path following commands
-  );*/
-  
- /* 
-  SwerveControllerCommand autonomousCommand = new SwerveControllerCommand(
-    practicePath, 
-    m_drivetrainSubsystem.getPose(), 
-    m_kinematics, 
-    new PIDController(0, 0, 0), 
-    new PIDController(0, 0, 0),
-    new ProfiledPIDController(0, 0, 0, Constants.auto.follower.ROT_PROFILE)
-    state, 
-    m_drivetrainSubsystem
-  );*/
-
-
-   //static Command fullAuto = autoBuilder.fullAuto(practicePath);
 
   public Command getAutonomousCommand() {
     // An ExampleCommand will run in autonomous
@@ -230,16 +162,6 @@ static HashMap<String, Command> eventMap = new HashMap<>();
   {
     return practicePath;
   }
-/* 
-  public SwerveAutoBuilder getAutoBuilder()
-  {
-    return autoBuilder;
-  }*/
-/* 
-  public static Command getFullAuto()
-  {
-    return fullAuto;
-  }*/
 
   public static DrivetrainSubsystem getDriveSubsystem()
   {

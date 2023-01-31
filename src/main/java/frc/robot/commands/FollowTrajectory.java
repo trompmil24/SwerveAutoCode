@@ -59,7 +59,6 @@ public class FollowTrajectory extends CommandBase {
     currentPose = m_Subsystem.getPose();
     speeds = hController.calculate(currentPose, state, state.holonomicRotation);
     m_Subsystem.updateStates(m_Subsystem.getKinematics().toSwerveModuleStates(speeds));
-
   }
 
   public double getTime()

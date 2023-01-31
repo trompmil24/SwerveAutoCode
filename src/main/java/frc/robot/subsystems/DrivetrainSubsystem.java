@@ -56,10 +56,6 @@ public class DrivetrainSubsystem extends SubsystemBase {
         Translation2d backRightPos = new Translation2d(-0.2832, -0.2832);
         PathPlannerTrajectory practicePath = PathPlanner.loadPath("practice", new PathConstraints(3, 2));
         Supplier<Pose2d> position = () -> new Pose2d();
-        
-        PIDController pidX = new PIDController(.25, 0, 0);
-        PIDController pidY = new PIDController(.25, 0, 0);
-        PIDController pidRotation = new PIDController(2.8, 0, 0);
 
         CANCoder frontLeftSteerEncoder = new CANCoder(FRONT_LEFT_MODULE_STEER_ENCODER);
         CANCoder frontRightSteerEncoder = new CANCoder(FRONT_RIGHT_MODULE_STEER_ENCODER);
@@ -221,6 +217,8 @@ private final com.ctre.phoenix.sensors.Pigeon2 m_pigeon2 = new com.ctre.phoenix.
             BACK_RIGHT_MODULE_STEER_ENCODER,
             BACK_RIGHT_MODULE_STEER_OFFSET
     );
+
+    m_desiredStates = m_kinematics.toSwerveModuleStates(m_chassisSpeeds);
   }
 
   /**
@@ -231,7 +229,7 @@ private final com.ctre.phoenix.sensors.Pigeon2 m_pigeon2 = new com.ctre.phoenix.
     // FIXME Remove if you are using a Pigeon
 //m_pigeon.setFusedHeading(0.0);
 m_pigeon2.setYaw(0);
-resetOdometry();
+//resetOdometry();
 
     // FIXME Uncomment if you are using a NavX
 //    m_navx.zeroYaw();
@@ -255,11 +253,12 @@ return Rotation2d.fromDegrees(m_pigeon2.getYaw());
 
   public void drive(ChassisSpeeds chassisSpeeds) {
     m_chassisSpeeds = chassisSpeeds;
+    m_desiredStates = m_kinematics.toSwerveModuleStates(chassisSpeeds);
   }
 
   @Override
   public void periodic() {
-        SwerveModuleState[] states = m_kinematics.toSwerveModuleStates(m_chassisSpeeds);
+        SwerveModuleState[] states = m_desiredStates;
     //SwerveDriveKinematics.normalizeWheelSpeeds(states, MAX_VELOCITY_METERS_PER_SECOND);
     m_frontLeftModule.set(states[0].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[0].angle.getRadians());
     m_frontRightModule.set(states[1].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE, states[1].angle.getRadians());
@@ -273,8 +272,15 @@ return Rotation2d.fromDegrees(m_pigeon2.getYaw());
   robotPose = RobotContainer.getOdometry().update(gyroAngle,
     new SwerveModulePosition[] {
       frontLeftPos(), frontRightPos(),
-      backLeftPos(), backRightPos()
+      backLeftPos(), backRightPos() 
     });
+
+    updateOdometry();
+}
+
+public void updateOdometry()
+{
+        m_odometry.update(Rotation2d.fromDegrees(getGyroscopeRotation().getDegrees()), new SwerveModulePosition[]{frontLeftPos(), frontRightPos(), backLeftPos(), backRightPos()});
 }
 
 public SwerveModulePosition getPosition(int moduleNum) {
@@ -286,19 +292,19 @@ public SwerveModulePosition getPosition(int moduleNum) {
 
         if(moduleNum == 1)
         {
-                return new SwerveModulePosition(driveEncoder1pos * Math.PI * SdsModuleConfigurations.MK4_L2.getWheelDiameter()/((1/6.75) * 4096), new Rotation2d(frontRightSteerEncoder.getAbsolutePosition()*Math.PI/180));
+                return new SwerveModulePosition(driveEncoder1pos * Math.PI * SdsModuleConfigurations.MK4_L2.getWheelDiameter()/((6.75) * 4096), new Rotation2d(frontRightSteerEncoder.getAbsolutePosition()*Math.PI/180));
         }
         else if(moduleNum == 2)
         {
-                return new SwerveModulePosition(driveEncoder2pos * Math.PI * SdsModuleConfigurations.MK4_L2.getWheelDiameter()/((1/6.75) * 4096), new Rotation2d(backRightSteerEncoder.getAbsolutePosition()*Math.PI/180));
+                return new SwerveModulePosition(driveEncoder2pos * Math.PI * SdsModuleConfigurations.MK4_L2.getWheelDiameter()/((6.75) * 4096), new Rotation2d(backRightSteerEncoder.getAbsolutePosition()*Math.PI/180));
         }
         else if(moduleNum == 3)
         {
-                return new SwerveModulePosition(driveEncoder3pos * Math.PI * SdsModuleConfigurations.MK4_L2.getWheelDiameter()/((1/6.75) * 4096), new Rotation2d(backLeftSteerEncoder.getAbsolutePosition()*Math.PI/180));
+                return new SwerveModulePosition(driveEncoder3pos * Math.PI * SdsModuleConfigurations.MK4_L2.getWheelDiameter()/((6.75) * 4096), new Rotation2d(backLeftSteerEncoder.getAbsolutePosition()*Math.PI/180));
         }
         else
         {
-                return new SwerveModulePosition(driveEncoder4pos * Math.PI * SdsModuleConfigurations.MK4_L2.getWheelDiameter()/((1/6.75) * 4096), new Rotation2d(frontLeftSteerEncoder.getAbsolutePosition()*Math.PI/180));
+                return new SwerveModulePosition(driveEncoder4pos * Math.PI * SdsModuleConfigurations.MK4_L2.getWheelDiameter()/((6.75) * 4096), new Rotation2d(frontLeftSteerEncoder.getAbsolutePosition()*Math.PI/180));
         }
 }
 public SwerveDriveKinematics getKinematics()
@@ -388,13 +394,6 @@ public SwerveModulePosition backRightPos()
 public Rotation2d getGyro()
 {
         return getGyroscopeRotation();
-}
-
-double[] spee = new double[]{1.0, 0.75};
-
-public double[] getSpee()
-{
-        return spee;
 }
 
 }
