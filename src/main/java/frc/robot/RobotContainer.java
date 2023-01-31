@@ -6,6 +6,8 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,6 +38,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import frc.robot.commands.AutoLookup;
 import frc.robot.commands.DefaultDriveCommand;
 import frc.robot.commands.PathContainer;
 import frc.robot.commands.RunAutonomous;
@@ -54,14 +57,27 @@ public class RobotContainer {
   private final XboxController m_controller = new XboxController(0);
   JoystickButton buttonA = new JoystickButton(m_controller, 1);
   static PathPlannerTrajectory practicePath = PathPlanner.loadPath("practice", new PathConstraints(1, 0.75));
-  
 
-  PathContainer pathContainer = new PathContainer("practice", new double[]{practicePath.sample(0).velocityMetersPerSecond, practicePath.sample(0).accelerationMetersPerSecondSq}, 0, true, false);
+  @SuppressWarnings("rawtypes")
+  private static SendableChooser m_autoChooser;
+
+  @SuppressWarnings("rawtypes")
+  private static SendableChooser m_allianceChooser;
   
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
+
+
+    m_autoChooser = new SendableChooser<>();
+    m_autoChooser.setDefaultOption("Nothing", null);
+
+    m_autoChooser.addOption("practice", AutoLookup.getAuto("practice"));
+
+    SmartDashboard.putData(m_autoChooser);
+
+
     // Set up the default command for the drivetrain.
     // The controls are for field-oriented driving:
     // Left stick Y axis -> forward and backwards movement
@@ -116,6 +132,7 @@ public class RobotContainer {
       m_drivetrainSubsystem.getCurrentSpeed();
     }
 };
+/* 
 static Consumer<SwerveModuleState[]> state = new Consumer<SwerveModuleState[]>() {
 
   @Override
@@ -125,9 +142,9 @@ static Consumer<SwerveModuleState[]> state = new Consumer<SwerveModuleState[]>()
     m_drivetrainSubsystem.drive(new ChassisSpeeds(1, 0, 0));
     //m_drivetrainSubsystem.setModuleStates(arg0);
     
-  }
+  }*/
   
-};
+//};
 static Consumer<Pose2d> poseConsumer = new Consumer<Pose2d>() {
 
   @Override
@@ -143,7 +160,7 @@ static Supplier<Pose2d> position = () -> new Pose2d(m_drivetrainSubsystem.getPos
 static SwerveDriveKinematics m_kinematics = m_drivetrainSubsystem.getKinematics();
 
 
-
+/* 
 static HashMap<String, Command> eventMap = new HashMap<>();
   //eventMap.put("marker1", new PrintCommand("Passed marker 1"));
   //eventMap.put("intakeDown", new IntakeDown());
@@ -160,7 +177,7 @@ static HashMap<String, Command> eventMap = new HashMap<>();
       eventMap,
       true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
       m_drivetrainSubsystem // The drive subsystem. Used to properly set the requirements of path following commands
-  );
+  );*/
   
  /* 
   SwerveControllerCommand autonomousCommand = new SwerveControllerCommand(
@@ -175,11 +192,11 @@ static HashMap<String, Command> eventMap = new HashMap<>();
   );*/
 
 
-   static Command fullAuto = autoBuilder.fullAuto(practicePath);
-  SequentialCommandGroup auto = new SequentialCommandGroup(new RunAutonomous(m_drivetrainSubsystem, pathContainer));
+   //static Command fullAuto = autoBuilder.fullAuto(practicePath);
+
   public Command getAutonomousCommand() {
     // An ExampleCommand will run in autonomous
-    return auto;
+    return (Command) m_autoChooser.getSelected();
   }
 
   private static double deadband(double value, double deadband) {
@@ -213,16 +230,16 @@ static HashMap<String, Command> eventMap = new HashMap<>();
   {
     return practicePath;
   }
-
+/* 
   public SwerveAutoBuilder getAutoBuilder()
   {
     return autoBuilder;
-  }
-
+  }*/
+/* 
   public static Command getFullAuto()
   {
     return fullAuto;
-  }
+  }*/
 
   public static DrivetrainSubsystem getDriveSubsystem()
   {

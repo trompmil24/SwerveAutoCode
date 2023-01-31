@@ -4,6 +4,7 @@
 
 package frc.robot.commands;
 
+import frc.robot.AutoRoutine;
 import frc.robot.RobotContainer;
 
 /** Add your docs here. */
@@ -14,12 +15,13 @@ public class AutoLookup {
     
     switch (name)
     {
+        default:
         case "practice":
             ret = new AutoRoutine(
-                new RunAutonomous(RobotContainer.getDriveSubsystem(), PathLookup.getContainer("practice")
-                )
+                new RunAutonomous(RobotContainer.getDriveSubsystem(), PathLookup.getContainer("practice"))
             );
             break;
     }
+    return ret;
 }
 }
